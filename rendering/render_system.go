@@ -3,9 +3,9 @@ package rendering
 import (
 	"slices"
 
+	"github.com/adm87/finch-core/components/transform"
 	"github.com/adm87/finch-core/ecs"
 	"github.com/adm87/finch-core/hash"
-	"github.com/adm87/finch-core/transform"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
