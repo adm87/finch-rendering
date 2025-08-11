@@ -3,10 +3,9 @@ package rendering
 import (
 	"github.com/adm87/finch-core/ecs"
 	"github.com/adm87/finch-core/errors"
-	"github.com/adm87/finch-core/hash"
 )
 
-var RenderComponentType = ecs.ComponentType(hash.GetHashFromType[RenderComponent]())
+var RenderComponentType = ecs.NewComponentType[*RenderComponent]()
 
 type RenderComponent struct {
 	Renderer  Renderer

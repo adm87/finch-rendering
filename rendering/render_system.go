@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	RenderSystemType   = ecs.SystemType(hash.GetHashFromType[RenderSystem]())
+	RenderSystemType   = ecs.NewSystemType[*RenderSystem]()
 	RenderSystemFilter = []ecs.ComponentType{
 		transform.TransformComponentType,
 		RenderComponentType,
