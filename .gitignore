@@ -10,3 +10,6 @@
 
 !rendering/
 !rendering/**/*
+
+!sprites/
+!sprites/**/*

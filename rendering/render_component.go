@@ -9,9 +9,9 @@ import (
 var RenderComponentType = ecs.ComponentType(hash.GetHashFromType[RenderComponent]())
 
 type RenderComponent struct {
-	renderer  Renderer
-	zIndex    int
-	isVisible bool
+	Renderer  Renderer
+	ZIndex    int
+	IsVisible bool
 }
 
 func NewRenderComponent(renderer Renderer, zIndex int) *RenderComponent {
@@ -19,39 +19,16 @@ func NewRenderComponent(renderer Renderer, zIndex int) *RenderComponent {
 		panic(errors.NewInvalidArgumentError("renderer cannot be nil"))
 	}
 	return &RenderComponent{
-		renderer:  renderer,
-		zIndex:    zIndex,
-		isVisible: true,
+		Renderer:  renderer,
+		ZIndex:    zIndex,
+		IsVisible: true,
 	}
+}
+
+func (c *RenderComponent) Dispose() {
+	c.Renderer = nil
 }
 
 func (c *RenderComponent) Type() ecs.ComponentType {
 	return RenderComponentType
-}
-
-func (c *RenderComponent) Renderer() Renderer {
-	return c.renderer
-}
-
-func (c *RenderComponent) SetRenderer(r Renderer) {
-	if r == nil {
-		panic(errors.NewInvalidArgumentError("renderer cannot be nil"))
-	}
-	c.renderer = r
-}
-
-func (c *RenderComponent) ZIndex() int {
-	return c.zIndex
-}
-
-func (c *RenderComponent) SetZIndex(z int) {
-	c.zIndex = z
-}
-
-func (c *RenderComponent) IsVisible() bool {
-	return c.isVisible
-}
-
-func (c *RenderComponent) SetVisible(v bool) {
-	c.isVisible = v
 }

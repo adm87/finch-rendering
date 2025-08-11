@@ -17,16 +17,17 @@ var (
 	}
 )
 
+type RenderQueueItem struct {
+	Renderer  Renderer
+	Order     int
+	Transform ebiten.GeoM
+}
+
 type RenderSystem struct {
-	cachedRenderComponents    map[ecs.EntityID]*RenderComponent
-	cachedTransformComponents map[ecs.EntityID]*transform.TransformComponent
 }
 
 func NewRenderSystem() *RenderSystem {
-	return &RenderSystem{
-		cachedRenderComponents:    make(map[ecs.EntityID]*RenderComponent),
-		cachedTransformComponents: make(map[ecs.EntityID]*transform.TransformComponent),
-	}
+	return &RenderSystem{}
 }
 
 func (s *RenderSystem) Type() ecs.SystemType {
@@ -37,56 +38,49 @@ func (s *RenderSystem) Filter() []ecs.ComponentType {
 	return RenderSystemFilter
 }
 
-func (s *RenderSystem) Render(entities []*ecs.Entity, buffer *ebiten.Image, view ebiten.GeoM, interpolation float64) error {
-	s.cachedRenderComponents = make(map[ecs.EntityID]*RenderComponent)
-	s.cachedTransformComponents = make(map[ecs.EntityID]*transform.TransformComponent)
+func (s *RenderSystem) Render(entities hash.HashSet[ecs.Entity], buffer *ebiten.Image, view ebiten.GeoM) error {
+	queue, err := internal_get_render_queue(entities)
+	if err != nil {
+		return err
+	}
 
-	renderOrder := s.internal_setup_rendering(entities)
-	for _, entity := range renderOrder {
-		rc := s.cachedRenderComponents[entity.ID()]
-		tc := s.cachedTransformComponents[entity.ID()]
-
-		if err := rc.Renderer().Render(buffer, view, tc.WorldMatrix()); err != nil {
+	for _, item := range queue {
+		if err := item.Renderer.Render(buffer, view, item.Transform); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func (s *RenderSystem) internal_setup_rendering(entities []*ecs.Entity) []*ecs.Entity {
-	var renderComponents []*ecs.Entity
+func internal_get_render_queue(entities hash.HashSet[ecs.Entity]) ([]*RenderQueueItem, error) {
+	var items []*RenderQueueItem
 
-	for _, entity := range entities {
-		tc, rc, err := s.internal_get_operation_components(entity)
-		if err != nil {
+	for entity := range entities {
+		rc, _, rErr := ecs.GetComponent[*RenderComponent](entity, RenderComponentType)
+		if rErr != nil {
+			return nil, rErr
+		}
+
+		if !rc.IsVisible || rc.Renderer == nil {
 			continue
 		}
 
-		if !rc.IsVisible() {
-			continue
+		tc, _, tErr := ecs.GetComponent[*transform.TransformComponent](entity, transform.TransformComponentType)
+		if tErr != nil {
+			return nil, tErr
 		}
 
-		s.cachedRenderComponents[entity.ID()] = rc
-		s.cachedTransformComponents[entity.ID()] = tc
-
-		renderComponents = append(renderComponents, entity)
+		items = append(items, &RenderQueueItem{
+			Renderer:  rc.Renderer,
+			Order:     rc.ZIndex,
+			Transform: tc.WorldMatrix(),
+		})
 	}
 
-	slices.SortStableFunc(renderComponents, func(a, b *ecs.Entity) int {
-		return s.cachedRenderComponents[a.ID()].ZIndex() - s.cachedRenderComponents[b.ID()].ZIndex()
+	slices.SortFunc(items, func(a, b *RenderQueueItem) int {
+		return a.Order - b.Order
 	})
 
-	return renderComponents
-}
-
-func (s *RenderSystem) internal_get_operation_components(entity *ecs.Entity) (*transform.TransformComponent, *RenderComponent, error) {
-	tc, _, err := entity.GetComponent(transform.TransformComponentType)
-	if err != nil {
-		return nil, nil, err
-	}
-	rc, _, err := entity.GetComponent(RenderComponentType)
-	if err != nil {
-		return nil, nil, err
-	}
-	return tc.(*transform.TransformComponent), rc.(*RenderComponent), nil
+	return items, nil
 }
