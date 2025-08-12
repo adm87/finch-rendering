@@ -5,7 +5,6 @@ import (
 
 	"github.com/adm87/finch-core/components/transform"
 	"github.com/adm87/finch-core/ecs"
-	"github.com/adm87/finch-core/hash"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -34,12 +33,8 @@ func (s *RenderSystem) Type() ecs.SystemType {
 	return RenderSystemType
 }
 
-func (s *RenderSystem) Filter() []ecs.ComponentType {
-	return RenderSystemFilter
-}
-
-func (s *RenderSystem) Render(entities hash.HashSet[ecs.Entity], buffer *ebiten.Image, view ebiten.GeoM) error {
-	queue, err := internal_get_render_queue(entities)
+func (s *RenderSystem) Render(world *ecs.ECSWorld, buffer *ebiten.Image, view ebiten.GeoM) error {
+	queue, err := internal_get_render_queue(world)
 	if err != nil {
 		return err
 	}
@@ -53,11 +48,13 @@ func (s *RenderSystem) Render(entities hash.HashSet[ecs.Entity], buffer *ebiten.
 	return nil
 }
 
-func internal_get_render_queue(entities hash.HashSet[ecs.Entity]) ([]*RenderQueueItem, error) {
+func internal_get_render_queue(world *ecs.ECSWorld) ([]*RenderQueueItem, error) {
+	entities := world.FilterEntitiesByComponents(RenderSystemFilter...)
+
 	var items []*RenderQueueItem
 
 	for entity := range entities {
-		rc, _, rErr := ecs.GetComponent[*RenderComponent](entity, RenderComponentType)
+		rc, _, rErr := ecs.GetComponent[*RenderComponent](world, entity, RenderComponentType)
 		if rErr != nil {
 			return nil, rErr
 		}
@@ -66,7 +63,7 @@ func internal_get_render_queue(entities hash.HashSet[ecs.Entity]) ([]*RenderQueu
 			continue
 		}
 
-		tc, _, tErr := ecs.GetComponent[*transform.TransformComponent](entity, transform.TransformComponentType)
+		tc, _, tErr := ecs.GetComponent[*transform.TransformComponent](world, entity, transform.TransformComponentType)
 		if tErr != nil {
 			return nil, tErr
 		}
