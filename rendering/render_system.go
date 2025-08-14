@@ -3,6 +3,7 @@ package rendering
 import (
 	"slices"
 
+	"github.com/adm87/finch-core/components/camera"
 	"github.com/adm87/finch-core/components/transform"
 	"github.com/adm87/finch-core/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -33,10 +34,21 @@ func (s *RenderSystem) Type() ecs.SystemType {
 	return RenderSystemType
 }
 
-func (s *RenderSystem) Render(world *ecs.ECSWorld, buffer *ebiten.Image, view ebiten.GeoM) error {
+func (s *RenderSystem) Render(world *ecs.ECSWorld, buffer *ebiten.Image) error {
 	queue, err := internal_get_render_queue(world)
 	if err != nil {
 		return err
+	}
+
+	cameraComponent, err := camera.FindCameraComponent(world)
+	if err != nil {
+		return err
+	}
+
+	view := ebiten.GeoM{}
+	if cameraComponent != nil {
+		view = cameraComponent.WorldMatrix()
+		view.Invert()
 	}
 
 	for _, item := range queue {
