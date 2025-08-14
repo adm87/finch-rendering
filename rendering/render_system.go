@@ -34,7 +34,7 @@ func (s *RenderSystem) Type() ecs.SystemType {
 	return RenderSystemType
 }
 
-func (s *RenderSystem) Render(world *ecs.ECSWorld, buffer *ebiten.Image) error {
+func (s *RenderSystem) Render(world *ecs.World, buffer *ebiten.Image) error {
 	queue, err := internal_get_render_queue(world)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (s *RenderSystem) Render(world *ecs.ECSWorld, buffer *ebiten.Image) error {
 	return nil
 }
 
-func internal_get_render_queue(world *ecs.ECSWorld) ([]*RenderQueueItem, error) {
+func internal_get_render_queue(world *ecs.World) ([]*RenderQueueItem, error) {
 	entities := world.FilterEntitiesByComponents(RenderSystemFilter...)
 
 	var items []*RenderQueueItem
