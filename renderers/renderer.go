@@ -1,4 +1,4 @@
-package rendering
+package renderers
 
 import "github.com/hajimehoshi/ebiten/v2"
 

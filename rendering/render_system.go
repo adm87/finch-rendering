@@ -6,6 +6,7 @@ import (
 	"github.com/adm87/finch-core/components/camera"
 	"github.com/adm87/finch-core/components/transform"
 	"github.com/adm87/finch-core/ecs"
+	"github.com/adm87/finch-rendering/renderers"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -18,7 +19,7 @@ var (
 )
 
 type RenderQueueItem struct {
-	Renderer  Renderer
+	Renderer  renderers.Renderer
 	Order     int
 	Transform ebiten.GeoM
 }

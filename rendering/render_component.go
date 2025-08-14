@@ -3,17 +3,18 @@ package rendering
 import (
 	"github.com/adm87/finch-core/ecs"
 	"github.com/adm87/finch-core/errors"
+	"github.com/adm87/finch-rendering/renderers"
 )
 
 var RenderComponentType = ecs.NewComponentType[*RenderComponent]()
 
 type RenderComponent struct {
-	Renderer  Renderer
+	Renderer  renderers.Renderer
 	ZIndex    int
 	IsVisible bool
 }
 
-func NewRenderComponent(renderer Renderer, zIndex int) *RenderComponent {
+func NewRenderComponent(renderer renderers.Renderer, zIndex int) *RenderComponent {
 	if renderer == nil {
 		panic(errors.NewInvalidArgumentError("renderer cannot be nil"))
 	}
