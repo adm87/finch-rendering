@@ -25,10 +25,25 @@ type RenderQueueItem struct {
 }
 
 type RenderSystem struct {
+	enabled bool
 }
 
 func NewRenderSystem() *RenderSystem {
-	return &RenderSystem{}
+	return &RenderSystem{
+		enabled: true,
+	}
+}
+
+func (s *RenderSystem) Enable() {
+	s.enabled = true
+}
+
+func (s *RenderSystem) Disable() {
+	s.enabled = false
+}
+
+func (s *RenderSystem) IsEnabled() bool {
+	return s.enabled
 }
 
 func (s *RenderSystem) Type() ecs.SystemType {
