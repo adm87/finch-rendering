@@ -13,7 +13,6 @@ import (
 var (
 	RenderSystemType   = ecs.NewSystemType[*RenderSystem]()
 	RenderSystemFilter = []ecs.ComponentType{
-		transform.TransformComponentType,
 		RenderComponentType,
 	}
 )
