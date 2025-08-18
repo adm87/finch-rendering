@@ -6,6 +6,7 @@ import (
 	"github.com/adm87/finch-core/components/camera"
 	"github.com/adm87/finch-core/components/transform"
 	"github.com/adm87/finch-core/ecs"
+	"github.com/adm87/finch-core/errors"
 	"github.com/adm87/finch-rendering/renderers"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -91,14 +92,19 @@ func internal_get_render_queue(world *ecs.World) ([]*RenderQueueItem, error) {
 		}
 
 		tc, _, tErr := ecs.GetComponent[*transform.TransformComponent](world, entity, transform.TransformComponentType)
-		if tErr != nil {
+		if tErr != nil && !errors.IsNotFoundError(tErr) {
 			return nil, tErr
+		}
+
+		worldMatrix := ebiten.GeoM{}
+		if tc != nil {
+			worldMatrix = tc.WorldMatrix()
 		}
 
 		items = append(items, &RenderQueueItem{
 			Renderer:  rc.Renderer,
 			Order:     rc.ZIndex,
-			Transform: tc.WorldMatrix(),
+			Transform: worldMatrix,
 		})
 	}
 
