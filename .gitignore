@@ -8,8 +8,8 @@
 !README.md
 !LICENSE
 
-!renderers/
-!renderers/**/*
-
 !rendering/
 !rendering/**/*
+
+!sprites/
+!sprites/**/*
