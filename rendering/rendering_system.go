@@ -64,8 +64,6 @@ func (rs *RenderingSystem) Render(world *ecs.World, buffer *ebiten.Image) error 
 		return err
 	}
 
-	println(len(queue), "rendering tasks in queue")
-
 	for _, pair := range queue {
 		pair.Second(buffer, view)
 	}

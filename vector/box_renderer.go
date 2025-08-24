@@ -1,6 +1,7 @@
 package vector
 
 import (
+	"image/color"
 	"math"
 
 	"github.com/adm87/finch-core/ecs"
@@ -17,6 +18,10 @@ func BoxRenderer(world *ecs.World, entity ecs.Entity) (rendering.RenderingTask, 
 	boxComp, _, _ := ecs.GetComponent[*BoxRenderComponent](world, entity, BoxRenderComponentType)
 	left, right, top, bottom := get_edges(boxComp.Min, boxComp.Max)
 	return func(surface *ebiten.Image, view ebiten.GeoM) {
+		if !boxComp.DrawBorder && !boxComp.DrawFill {
+			return
+		}
+
 		path := vec.Path{}
 
 		left, top = view.Apply(left, top)
@@ -33,7 +38,7 @@ func BoxRenderer(world *ecs.World, entity ecs.Entity) (rendering.RenderingTask, 
 			draw_border(&path, surface, []float32{r, g, b, a}, boxComp.BorderWidth, boxOp)
 		}
 
-		if boxComp.FillColor.A > 0 {
+		if boxComp.DrawFill {
 			r, g, b, a := float32(boxComp.FillColor.R)/255, float32(boxComp.FillColor.G)/255, float32(boxComp.FillColor.B)/255, float32(boxComp.FillColor.A)/255
 			draw_fill(&path, surface, []float32{r, g, b, a}, boxOp)
 		}
@@ -45,6 +50,9 @@ func draw_border(path *vec.Path, surface *ebiten.Image, color []float32, width f
 	vs, is := path.AppendVerticesAndIndicesForStroke(nil, nil, &vec.StrokeOptions{
 		Width: width,
 	})
+	if len(vs) == 0 || len(is) == 0 {
+		return
+	}
 	for i := range vs {
 		vs[i].ColorR = color[0]
 		vs[i].ColorG = color[1]
@@ -55,9 +63,10 @@ func draw_border(path *vec.Path, surface *ebiten.Image, color []float32, width f
 }
 
 func draw_fill(path *vec.Path, surface *ebiten.Image, color []float32, op *ebiten.DrawTrianglesOptions) {
-	vs, is := path.AppendVerticesAndIndicesForStroke(nil, nil, &vec.StrokeOptions{
-		Width: 1,
-	})
+	vs, is := path.AppendVerticesAndIndicesForFilling(nil, nil)
+	if len(vs) == 0 || len(is) == 0 {
+		return
+	}
 	for i := range vs {
 		vs[i].ColorR = color[0]
 		vs[i].ColorG = color[1]
@@ -76,5 +85,6 @@ func get_edges(min, max geometry.Point64) (left, right, top, bottom float64) {
 }
 
 func init() {
+	boxImg.Fill(color.White)
 	rendering.Register(BoxRenderComponentType, BoxRenderer)
 }

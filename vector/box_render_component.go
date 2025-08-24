@@ -27,6 +27,7 @@ func NewBoxRenderComponent(zOrder int) *BoxRenderComponent {
 		BorderColor: color.RGBA{0, 0, 0, 255},
 		FillColor:   color.RGBA{255, 255, 255, 255},
 		ZOrder:      zOrder,
+		BorderWidth: 1,
 	}
 }
 
