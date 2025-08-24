@@ -98,12 +98,19 @@ func (rs *RenderingSystem) GetRenderingQueue(world *ecs.World, viewport geometry
 
 func is_visible(world *ecs.World, entity ecs.Entity, viewport geometry.Rectangle64) bool {
 	visibilityComp, found, _ := ecs.GetComponent[*VisibilityComponent](world, entity, VisibilityComponentType)
-	if !found || !visibilityComp.IsVisible {
-		return true
+	if !found {
+		return true // No visibility component present so the entity is always visible.
+	}
+	if !visibilityComp.IsVisible {
+		return false // IsVisible takes priority over anything.
+	}
+	if !visibilityComp.VisibleArea.IsValid() {
+		return true // Visible area is not defined, but the entity is marked as visible so we assume it's visible
 	}
 	if transform, found, _ := ecs.GetComponent[*transform.TransformComponent](world, entity, transform.TransformComponentType); found {
 		position := transform.Position()
-		return visibilityComp.VisibleArea.Translate(position.X, position.Y).Intersects(viewport)
+		visibleArea := visibilityComp.VisibleArea.Value()
+		return visibleArea.Translate(position.X, position.Y).Intersects(viewport)
 	}
-	return visibilityComp.VisibleArea.Intersects(viewport)
+	return false // Warning: If we can't find a transform to translate to world space, we assume it's not visible
 }

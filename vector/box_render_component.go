@@ -21,11 +21,12 @@ type BoxRenderComponent struct {
 	ZOrder      int
 }
 
-func NewBoxRenderComponent() *BoxRenderComponent {
+func NewBoxRenderComponent(zOrder int) *BoxRenderComponent {
 	return &BoxRenderComponent{
 		DrawFill:    true,
 		BorderColor: color.RGBA{0, 0, 0, 255},
 		FillColor:   color.RGBA{255, 255, 255, 255},
+		ZOrder:      zOrder,
 	}
 }
 
