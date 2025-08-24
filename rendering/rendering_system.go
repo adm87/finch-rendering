@@ -4,7 +4,9 @@ import (
 	"slices"
 
 	"github.com/adm87/finch-core/components/camera"
+	"github.com/adm87/finch-core/components/transform"
 	"github.com/adm87/finch-core/ecs"
+	"github.com/adm87/finch-core/geometry"
 	"github.com/adm87/finch-core/types"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -55,10 +57,14 @@ func (rs *RenderingSystem) Render(world *ecs.World, buffer *ebiten.Image) error 
 	view := cameraComp.WorldMatrix()
 	view.Invert()
 
-	queue, err := rs.GetRenderingQueue(world)
+	viewport := cameraComp.Viewport()
+
+	queue, err := rs.GetRenderingQueue(world, viewport)
 	if err != nil {
 		return err
 	}
+
+	println(len(queue), "rendering tasks in queue")
 
 	for _, pair := range queue {
 		pair.Second(buffer, view)
@@ -66,12 +72,15 @@ func (rs *RenderingSystem) Render(world *ecs.World, buffer *ebiten.Image) error 
 	return nil
 }
 
-func (rs *RenderingSystem) GetRenderingQueue(world *ecs.World) ([]types.Pair[int, RenderingTask], error) {
+func (rs *RenderingSystem) GetRenderingQueue(world *ecs.World, viewport geometry.Rectangle64) ([]types.Pair[int, RenderingTask], error) {
 	var renderingQueue []types.Pair[int, RenderingTask]
 
 	for ct := range rendererRegistry {
 		entities := world.FilterEntitiesByComponents(ct)
 		for entity := range entities {
+			if !is_visible(world, entity, viewport) {
+				continue
+			}
 			renderingTask, zOrder, err := rendererRegistry[ct](world, entity)
 			if err != nil {
 				return nil, err
@@ -85,4 +94,16 @@ func (rs *RenderingSystem) GetRenderingQueue(world *ecs.World) ([]types.Pair[int
 	})
 
 	return renderingQueue, nil
+}
+
+func is_visible(world *ecs.World, entity ecs.Entity, viewport geometry.Rectangle64) bool {
+	visibilityComp, found, _ := ecs.GetComponent[*VisibilityComponent](world, entity, VisibilityComponentType)
+	if !found || !visibilityComp.IsVisible {
+		return true
+	}
+	if transform, found, _ := ecs.GetComponent[*transform.TransformComponent](world, entity, transform.TransformComponentType); found {
+		position := transform.Position()
+		return visibilityComp.VisibleArea.Translate(position.X, position.Y).Intersects(viewport)
+	}
+	return visibilityComp.VisibleArea.Intersects(viewport)
 }

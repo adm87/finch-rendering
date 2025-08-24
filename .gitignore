@@ -13,3 +13,6 @@
 
 !sprites/
 !sprites/**/*
+
+!vector/
+!vector/**/*
