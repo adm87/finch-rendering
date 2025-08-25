@@ -8,6 +8,9 @@
 !README.md
 !LICENSE
 
+!module/
+!module/**/*
+
 !rendering/
 !rendering/**/*
 

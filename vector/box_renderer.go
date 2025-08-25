@@ -86,5 +86,4 @@ func get_edges(min, max geometry.Point64) (left, right, top, bottom float64) {
 
 func init() {
 	boxImg.Fill(color.White)
-	rendering.Register(BoxRenderComponentType, BoxRenderer)
 }
