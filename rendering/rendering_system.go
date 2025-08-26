@@ -83,6 +83,9 @@ func (rs *RenderingSystem) GetRenderingQueue(world *ecs.World, viewport geometry
 			if err != nil {
 				return nil, err
 			}
+			if renderingTask == nil {
+				continue
+			}
 			renderingQueue = append(renderingQueue, types.Pair[int, RenderingTask]{First: zOrder, Second: renderingTask})
 		}
 	}
